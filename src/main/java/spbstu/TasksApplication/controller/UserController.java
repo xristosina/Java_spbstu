@@ -7,6 +7,7 @@ import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.service.UserService;
 import spbstu.TasksApplication.exception.DuplicateResourceException;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,18 +18,35 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.registerUser(user));
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/login")
-    public ResponseEntity<User> login(@RequestParam String username, @RequestParam String password) {
-        User user = userService.login(username, password);
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
+    }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(userService.getUserByUsername(username));
+    }
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.createUser(user));
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody User updatedUser) {
+        return ResponseEntity.ok(userService.updateUser(userId, updatedUser));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok().build();
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

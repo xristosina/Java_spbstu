@@ -15,13 +15,34 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<Notification>> getAllNotifications(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationService.getAllNotifications(userId));
     }
 
-    @GetMapping("/{userId}/pending")
-    public ResponseEntity<List<Notification>> getPendingNotifications(@PathVariable Long userId) {
-        return ResponseEntity.ok(notificationService.getPendingNotifications(userId));
+    @GetMapping("/user/{userId}/unread")
+    public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable Long userId) {
+        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
+    }
+
+    @GetMapping("/{notificationId}")
+    public ResponseEntity<Notification> getNotificationById(@PathVariable Long notificationId) {
+        return ResponseEntity.ok(notificationService.getNotificationById(notificationId));
+    }
+
+    @PostMapping
+    public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
+        return ResponseEntity.ok(notificationService.createNotification(notification));
+    }
+
+    @PutMapping("/{notificationId}/read")
+    public ResponseEntity<Notification> markAsRead(@PathVariable Long notificationId) {
+        return ResponseEntity.ok(notificationService.markAsRead(notificationId));
+    }
+
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<Void> deleteNotification(@PathVariable Long notificationId) {
+        notificationService.deleteNotification(notificationId);
+        return ResponseEntity.ok().build();
     }
 } 
