@@ -57,6 +57,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(existingUser);
     }
 
+    @Override
+    public User createUser(User user) {
+        validateUser(user);
+        checkUsernameExists(user.getUsername());
+        checkEmailExists(user.getEmail());
+        return userRepository.save(user);
+    }
+
     private void validateUser(User user) {
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");

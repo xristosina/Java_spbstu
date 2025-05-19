@@ -3,7 +3,9 @@ package spbstu.TasksApplication.service.impl;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.repository.TaskRepository;
+import spbstu.TasksApplication.repository.UserRepository;
 import spbstu.TasksApplication.service.TaskService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,9 +13,11 @@ import java.util.List;
 @Service
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -36,6 +40,8 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task createTask(Task task) {
         validateTask(task);
+        User user = userRepository.findById(task.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + task.getUserId()));
         task.setCreationDate(LocalDateTime.now());
         return taskRepository.save(task);
     }

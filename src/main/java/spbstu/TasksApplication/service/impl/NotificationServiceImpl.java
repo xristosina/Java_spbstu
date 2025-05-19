@@ -3,7 +3,9 @@ package spbstu.TasksApplication.service.impl;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Notification;
+import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.repository.NotificationRepository;
+import spbstu.TasksApplication.repository.UserRepository;
 import spbstu.TasksApplication.service.NotificationService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,9 +13,11 @@ import java.util.List;
 @Service
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository) {
+    public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -34,7 +38,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Notification createNotification(Notification notification) {
-        validateNotification(notification);
+        if (notification.getMessage() == null || notification.getMessage().trim().isEmpty()) {
+            throw new IllegalArgumentException("Notification message cannot be empty");
+        }
+        if (notification.getUserId() == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        User user = userRepository.findById(notification.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + notification.getUserId()));
         notification.setDate(LocalDateTime.now());
         return notificationRepository.save(notification);
     }
@@ -61,12 +72,8 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.delete(notification);
     }
 
-    private void validateNotification(Notification notification) {
-        if (notification.getMessage() == null || notification.getMessage().trim().isEmpty()) {
-            throw new IllegalArgumentException("Notification message cannot be empty");
-        }
-        if (notification.getUserId() == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
+    @Override
+    public List<Notification> getUnreadNotifications(Long userId) {
+        return notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(userId);
     }
 } 

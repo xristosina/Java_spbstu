@@ -33,18 +33,16 @@ class NotificationControllerTest {
         
         notification1 = Notification.builder()
                 .notificationId(1L)
-                .text("Test notification 1")
+                .message("Test notification 1")
                 .date(LocalDateTime.now())
-                .taskId(1L)
                 .userId(1L)
                 .isRead(false)
                 .build();
 
         notification2 = Notification.builder()
                 .notificationId(2L)
-                .text("Test notification 2")
+                .message("Test notification 2")
                 .date(LocalDateTime.now())
-                .taskId(2L)
                 .userId(1L)
                 .isRead(true)
                 .build();
