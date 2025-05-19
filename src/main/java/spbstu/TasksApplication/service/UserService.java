@@ -7,4 +7,5 @@ public interface UserService {
     User login(String username, String password);
     User getUserById(Long userId);
     User updateUser(Long userId, User updatedUser);
+    User createUser(User user);
 }
