@@ -3,47 +3,41 @@ package spbstu.TasksApplication.service.impl;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.repository.TaskRepository;
 import spbstu.TasksApplication.service.TaskService;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TaskServiceImpl implements TaskService {
-    private final Map<Long, Task> tasks = new HashMap<>();
-    private final AtomicLong taskIdCounter = new AtomicLong(1);
+    private final TaskRepository taskRepository;
+
+    public TaskServiceImpl(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
+    }
 
     @Override
     public List<Task> getAllTasks(Long userId) {
-        return tasks.values().stream()
-                .filter(task -> task.getUserId().equals(userId) && !task.getIsDeleted())
-                .collect(Collectors.toList());
+        return taskRepository.findByUserIdAndIsDeletedFalse(userId);
     }
 
     @Override
     public List<Task> getPendingTasks(Long userId) {
-        return tasks.values().stream()
-                .filter(task -> task.getUserId().equals(userId) && !task.getIsCompleted() && !task.getIsDeleted())
-                .collect(Collectors.toList());
+        return taskRepository.findByUserIdAndIsCompletedFalseAndIsDeletedFalse(userId);
     }
 
     @Override
     public Task getTaskById(Long taskId) {
-        Task task = tasks.get(taskId);
-        if (task == null || task.getIsDeleted()) {
-            throw new ResourceNotFoundException("Task not found with id: " + taskId);
-        }
-        return task;
+        return taskRepository.findById(taskId)
+                .filter(task -> !task.getIsDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
     }
 
     @Override
     public Task createTask(Task task) {
         validateTask(task);
-        task.setTaskId(taskIdCounter.getAndIncrement());
         task.setCreationDate(LocalDateTime.now());
-        tasks.put(task.getTaskId(), task);
-        return task;
+        return taskRepository.save(task);
     }
 
     @Override
@@ -56,22 +50,21 @@ public class TaskServiceImpl implements TaskService {
         existingTask.setTargetDate(updatedTask.getTargetDate());
         existingTask.setIsCompleted(updatedTask.getIsCompleted());
         
-        tasks.put(taskId, existingTask);
-        return existingTask;
+        return taskRepository.save(existingTask);
     }
 
     @Override
     public void deleteTask(Long taskId) {
         Task task = getTaskById(taskId);
         task.setIsDeleted(true);
-        tasks.put(taskId, task);
+        taskRepository.save(task);
     }
 
     @Override
     public void completeTask(Long taskId) {
         Task task = getTaskById(taskId);
         task.setIsCompleted(true);
-        tasks.put(taskId, task);
+        taskRepository.save(task);
     }
 
     private void validateTask(Task task) {

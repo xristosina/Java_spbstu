@@ -2,24 +2,37 @@ package spbstu.TasksApplication.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.repository.TaskRepository;
 import spbstu.TasksApplication.service.impl.TaskServiceImpl;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class TaskServiceImplTest {
 
+    @Mock
+    private TaskRepository taskRepository;
+
+    @InjectMocks
     private TaskServiceImpl taskService;
+
     private Task task1;
     private Task task2;
 
     @BeforeEach
     void setUp() {
-        taskService = new TaskServiceImpl();
+        MockitoAnnotations.openMocks(this);
         
         task1 = Task.builder()
                 .title("Test task 1")
@@ -42,12 +55,14 @@ class TaskServiceImplTest {
 
     @Test
     void createTask_ShouldCreateValidTask() {
+        // Arrange
+        when(taskRepository.save(any(Task.class))).thenReturn(task1);
+
         // Act
         Task created = taskService.createTask(task1);
 
         // Assert
         assertNotNull(created);
-        assertNotNull(created.getTaskId());
         assertEquals(task1.getTitle(), created.getTitle());
         assertEquals(task1.getDescription(), created.getDescription());
         assertEquals(task1.getTargetDate(), created.getTargetDate());
@@ -55,6 +70,7 @@ class TaskServiceImplTest {
         assertFalse(created.getIsCompleted());
         assertFalse(created.getIsDeleted());
         assertNotNull(created.getCreationDate());
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test
@@ -64,6 +80,7 @@ class TaskServiceImplTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task1));
+        verify(taskRepository, never()).save(any(Task.class));
     }
 
     @Test
@@ -73,6 +90,7 @@ class TaskServiceImplTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task1));
+        verify(taskRepository, never()).save(any(Task.class));
     }
 
     @Test
@@ -82,98 +100,122 @@ class TaskServiceImplTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task1));
+        verify(taskRepository, never()).save(any(Task.class));
     }
 
     @Test
-    void getAllTasks_ShouldReturnAllTasksForUser() {
+    void getAllTasks_ShouldReturnAllNonDeletedTasks() {
         // Arrange
-        taskService.createTask(task1);
-        taskService.createTask(task2);
+        List<Task> tasks = Arrays.asList(task1, task2);
+        when(taskRepository.findByUserIdAndIsDeletedFalse(1L)).thenReturn(tasks);
 
         // Act
-        List<Task> tasks = taskService.getAllTasks(1L);
+        List<Task> result = taskService.getAllTasks(1L);
 
         // Assert
-        assertEquals(2, tasks.size());
-        assertTrue(tasks.stream().allMatch(t -> t.getUserId().equals(1L) && !t.getIsDeleted()));
+        assertEquals(2, result.size());
+        verify(taskRepository, times(1)).findByUserIdAndIsDeletedFalse(1L);
     }
 
     @Test
-    void getPendingTasks_ShouldReturnOnlyPendingTasks() {
+    void getPendingTasks_ShouldReturnOnlyIncompleteAndNonDeletedTasks() {
         // Arrange
-        taskService.createTask(task1);
-        taskService.createTask(task2);
+        List<Task> tasks = List.of(task1);
+        when(taskRepository.findByUserIdAndIsCompletedFalseAndIsDeletedFalse(1L)).thenReturn(tasks);
 
         // Act
-        List<Task> tasks = taskService.getPendingTasks(1L);
+        List<Task> result = taskService.getPendingTasks(1L);
 
         // Assert
-        assertEquals(1, tasks.size());
-        assertTrue(tasks.stream().allMatch(t -> !t.getIsCompleted() && !t.getIsDeleted()));
+        assertEquals(1, result.size());
+        assertFalse(result.get(0).getIsCompleted());
+        verify(taskRepository, times(1)).findByUserIdAndIsCompletedFalseAndIsDeletedFalse(1L);
     }
 
     @Test
     void getTaskById_ShouldReturnTask_WhenExists() {
         // Arrange
-        Task created = taskService.createTask(task1);
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task1));
 
         // Act
-        Task found = taskService.getTaskById(created.getTaskId());
+        Task found = taskService.getTaskById(1L);
 
         // Assert
         assertNotNull(found);
-        assertEquals(created.getTaskId(), found.getTaskId());
+        assertEquals(task1.getTitle(), found.getTitle());
+        verify(taskRepository, times(1)).findById(1L);
     }
 
     @Test
     void getTaskById_ShouldThrowException_WhenNotFound() {
+        // Arrange
+        when(taskRepository.findById(999L)).thenReturn(Optional.empty());
+
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> taskService.getTaskById(999L));
+        verify(taskRepository, times(1)).findById(999L);
     }
 
     @Test
     void updateTask_ShouldUpdateTask() {
         // Arrange
-        Task created = taskService.createTask(task1);
-        Task updatedTask = Task.builder()
-                .title("Updated title")
-                .description("Updated description")
-                .targetDate(LocalDateTime.now().plusDays(3))
+        Task existingTask = Task.builder()
+                .taskId(1L)
+                .title("Old title")
+                .description("Old description")
+                .targetDate(LocalDateTime.now().plusDays(1))
                 .userId(1L)
                 .isCompleted(false)
+                .isDeleted(false)
                 .build();
 
+        Task updatedTask = Task.builder()
+                .title("New title")
+                .description("New description")
+                .targetDate(LocalDateTime.now().plusDays(2))
+                .userId(1L)
+                .isCompleted(true)
+                .build();
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
+        when(taskRepository.save(any(Task.class))).thenReturn(existingTask);
+
         // Act
-        Task updated = taskService.updateTask(created.getTaskId(), updatedTask);
+        Task updated = taskService.updateTask(1L, updatedTask);
 
         // Assert
         assertEquals(updatedTask.getTitle(), updated.getTitle());
         assertEquals(updatedTask.getDescription(), updated.getDescription());
         assertEquals(updatedTask.getTargetDate(), updated.getTargetDate());
+        assertEquals(updatedTask.getIsCompleted(), updated.getIsCompleted());
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test
     void deleteTask_ShouldMarkTaskAsDeleted() {
         // Arrange
-        Task created = taskService.createTask(task1);
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task1));
+        when(taskRepository.save(any(Task.class))).thenReturn(task1);
 
         // Act
-        taskService.deleteTask(created.getTaskId());
+        taskService.deleteTask(1L);
 
         // Assert
-        assertThrows(ResourceNotFoundException.class, () -> taskService.getTaskById(created.getTaskId()));
+        assertTrue(task1.getIsDeleted());
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test
     void completeTask_ShouldMarkTaskAsCompleted() {
         // Arrange
-        Task created = taskService.createTask(task1);
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task1));
+        when(taskRepository.save(any(Task.class))).thenReturn(task1);
 
         // Act
-        taskService.completeTask(created.getTaskId());
+        taskService.completeTask(1L);
 
         // Assert
-        Task completed = taskService.getTaskById(created.getTaskId());
-        assertTrue(completed.getIsCompleted());
+        assertTrue(task1.getIsCompleted());
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 } 

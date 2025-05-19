@@ -3,16 +3,18 @@ package spbstu.TasksApplication.service.impl;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.User;
+import spbstu.TasksApplication.repository.UserRepository;
 import spbstu.TasksApplication.service.UserService;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private final Map<Long, User> users = new HashMap<>();
-    private final AtomicLong userIdCounter = new AtomicLong(1);
+    private final UserRepository userRepository;
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public User registerUser(User user) {
@@ -20,27 +22,20 @@ public class UserServiceImpl implements UserService {
         checkUsernameExists(user.getUsername());
         checkEmailExists(user.getEmail());
         
-        user.setUserId(userIdCounter.getAndIncrement());
-        users.put(user.getUserId(), user);
-        return user;
+        return userRepository.save(user);
     }
 
     @Override
     public User login(String username, String password) {
-        User user = users.values().stream()
-                .filter(u -> u.getUsername().equals(username) && u.getPassword().equals(password))
-                .findFirst()
+        return userRepository.findByUsername(username)
+                .filter(user -> user.getPassword().equals(password))
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid username or password"));
-        return user;
     }
 
     @Override
     public User getUserById(Long userId) {
-        User user = users.get(userId);
-        if (user == null) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
-        }
-        return user;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
     @Override
@@ -59,8 +54,7 @@ public class UserServiceImpl implements UserService {
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPassword(updatedUser.getPassword());
         
-        users.put(userId, existingUser);
-        return existingUser;
+        return userRepository.save(existingUser);
     }
 
     private void validateUser(User user) {
@@ -85,13 +79,13 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkUsernameExists(String username) {
-        if (users.values().stream().anyMatch(u -> u.getUsername().equals(username))) {
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
     }
 
     private void checkEmailExists(String email) {
-        if (users.values().stream().anyMatch(u -> u.getEmail().equals(email))) {
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
     }
