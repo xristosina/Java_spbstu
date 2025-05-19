@@ -2,35 +2,46 @@ package spbstu.TasksApplication.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Notification;
+import spbstu.TasksApplication.repository.NotificationRepository;
 import spbstu.TasksApplication.service.impl.NotificationServiceImpl;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class NotificationServiceImplTest {
 
+    @Mock
+    private NotificationRepository notificationRepository;
+
+    @InjectMocks
     private NotificationServiceImpl notificationService;
+
     private Notification notification1;
     private Notification notification2;
 
     @BeforeEach
     void setUp() {
-        notificationService = new NotificationServiceImpl();
+        MockitoAnnotations.openMocks(this);
         
         notification1 = Notification.builder()
-                .text("Test notification 1")
-                .taskId(1L)
+                .message("Test notification 1")
                 .userId(1L)
                 .isRead(false)
                 .build();
 
         notification2 = Notification.builder()
-                .text("Test notification 2")
-                .taskId(2L)
+                .message("Test notification 2")
                 .userId(1L)
                 .isRead(true)
                 .build();
@@ -38,119 +49,132 @@ class NotificationServiceImplTest {
 
     @Test
     void createNotification_ShouldCreateValidNotification() {
+        // Arrange
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification1);
+
         // Act
         Notification created = notificationService.createNotification(notification1);
 
         // Assert
         assertNotNull(created);
-        assertNotNull(created.getNotificationId());
-        assertEquals(notification1.getText(), created.getText());
-        assertEquals(notification1.getTaskId(), created.getTaskId());
+        assertEquals(notification1.getMessage(), created.getMessage());
         assertEquals(notification1.getUserId(), created.getUserId());
         assertFalse(created.getIsRead());
         assertNotNull(created.getDate());
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
-    void createNotification_ShouldThrowException_WhenTextIsEmpty() {
+    void createNotification_ShouldThrowException_WhenMessageIsEmpty() {
         // Arrange
-        notification1.setText("");
+        notification1.setMessage("");
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> notificationService.createNotification(notification1));
+        verify(notificationRepository, never()).save(any(Notification.class));
     }
 
     @Test
-    void createNotification_ShouldThrowException_WhenTaskIdIsNull() {
+    void createNotification_ShouldThrowException_WhenUserIdIsNull() {
+        // Arrange
+        notification1.setUserId(null);
+
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> {
-            notification1.setTaskId(null);
-            notificationService.createNotification(notification1);
-        });
+        assertThrows(IllegalArgumentException.class, () -> notificationService.createNotification(notification1));
+        verify(notificationRepository, never()).save(any(Notification.class));
     }
 
     @Test
     void getAllNotifications_ShouldReturnAllNotificationsForUser() {
         // Arrange
-        notificationService.createNotification(notification1);
-        notificationService.createNotification(notification2);
+        List<Notification> notifications = Arrays.asList(notification1, notification2);
+        when(notificationRepository.findByUserIdOrderByDateDesc(1L)).thenReturn(notifications);
 
         // Act
-        List<Notification> notifications = notificationService.getAllNotifications(1L);
+        List<Notification> result = notificationService.getAllNotifications(1L);
 
         // Assert
-        assertEquals(2, notifications.size());
-        assertTrue(notifications.stream().allMatch(n -> n.getUserId().equals(1L)));
+        assertEquals(2, result.size());
+        verify(notificationRepository, times(1)).findByUserIdOrderByDateDesc(1L);
     }
 
     @Test
     void getPendingNotifications_ShouldReturnOnlyUnreadNotifications() {
         // Arrange
-        notificationService.createNotification(notification1);
-        notificationService.createNotification(notification2);
+        List<Notification> notifications = List.of(notification1);
+        when(notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(1L)).thenReturn(notifications);
 
         // Act
-        List<Notification> notifications = notificationService.getPendingNotifications(1L);
+        List<Notification> result = notificationService.getPendingNotifications(1L);
 
         // Assert
-        assertEquals(1, notifications.size());
-        assertTrue(notifications.stream().allMatch(n -> !n.getIsRead()));
+        assertEquals(1, result.size());
+        assertFalse(result.get(0).getIsRead());
+        verify(notificationRepository, times(1)).findByUserIdAndIsReadFalseOrderByDateDesc(1L);
     }
 
     @Test
     void getNotificationById_ShouldReturnNotification_WhenExists() {
         // Arrange
-        Notification created = notificationService.createNotification(notification1);
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification1));
 
         // Act
-        Notification found = notificationService.getNotificationById(created.getNotificationId());
+        Notification found = notificationService.getNotificationById(1L);
 
         // Assert
         assertNotNull(found);
-        assertEquals(created.getNotificationId(), found.getNotificationId());
+        assertEquals(notification1.getMessage(), found.getMessage());
+        verify(notificationRepository, times(1)).findById(1L);
     }
 
     @Test
     void getNotificationById_ShouldThrowException_WhenNotFound() {
+        // Arrange
+        when(notificationRepository.findById(999L)).thenReturn(Optional.empty());
+
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> notificationService.getNotificationById(999L));
+        verify(notificationRepository, times(1)).findById(999L);
     }
 
     @Test
     void markAsRead_ShouldMarkNotificationAsRead() {
         // Arrange
-        Notification created = notificationService.createNotification(notification1);
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification1));
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification1);
 
         // Act
-        Notification marked = notificationService.markAsRead(created.getNotificationId());
+        Notification marked = notificationService.markAsRead(1L);
 
         // Assert
         assertTrue(marked.getIsRead());
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
-    void markAllAsRead_ShouldMarkAllUserNotificationsAsRead() {
+    void markAllAsRead_ShouldMarkAllNotificationsAsRead() {
         // Arrange
-        notificationService.createNotification(notification1);
-        notificationService.createNotification(notification2);
+        List<Notification> notifications = List.of(notification1);
+        when(notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(1L)).thenReturn(notifications);
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification1);
 
         // Act
         notificationService.markAllAsRead(1L);
 
         // Assert
-        List<Notification> notifications = notificationService.getAllNotifications(1L);
-        assertTrue(notifications.stream().allMatch(Notification::getIsRead));
+        assertTrue(notification1.getIsRead());
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
-    void deleteNotification_ShouldRemoveNotification() {
+    void deleteNotification_ShouldDeleteNotification() {
         // Arrange
-        Notification created = notificationService.createNotification(notification1);
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification1));
 
         // Act
-        notificationService.deleteNotification(created.getNotificationId());
+        notificationService.deleteNotification(1L);
 
         // Assert
-        assertThrows(ResourceNotFoundException.class, () -> notificationService.getNotificationById(created.getNotificationId()));
+        verify(notificationRepository, times(1)).delete(notification1);
     }
 } 
