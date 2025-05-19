@@ -99,12 +99,3 @@ out/
 .vscode/
 
 **/.DS_Store
-
-HELP.md
-
-### Application Properties ###
-src/main/resources/application-local.properties
-
-### Logs ###
-*.log
-logs/
