@@ -1,5 +1,7 @@
 package spbstu.TasksApplication.service.impl;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
@@ -21,16 +23,19 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Cacheable(value = "tasks", key = "#userId.toString()", unless = "#result.isEmpty()")
     public List<Task> getAllTasks(Long userId) {
         return taskRepository.findByUserIdAndIsDeletedFalse(userId);
     }
 
     @Override
+    @Cacheable(value = "tasks", key = "'pending_' + #userId.toString()", unless = "#result.isEmpty()")
     public List<Task> getPendingTasks(Long userId) {
         return taskRepository.findByUserIdAndIsCompletedFalseAndIsDeletedFalse(userId);
     }
 
     @Override
+    @Cacheable(value = "tasks", key = "#taskId.toString()", unless = "#result == null")
     public Task getTaskById(Long taskId) {
         return taskRepository.findById(taskId)
                 .filter(task -> !task.getIsDeleted())
@@ -38,6 +43,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @CacheEvict(value = "tasks", allEntries = true)
     public Task createTask(Task task) {
         validateTask(task);
         User user = userRepository.findById(task.getUserId())
@@ -47,6 +53,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @CacheEvict(value = "tasks", allEntries = true)
     public Task updateTask(Long taskId, Task updatedTask) {
         Task existingTask = getTaskById(taskId);
         validateTask(updatedTask);
@@ -60,6 +67,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @CacheEvict(value = "tasks", allEntries = true)
     public void deleteTask(Long taskId) {
         Task task = getTaskById(taskId);
         task.setIsDeleted(true);
@@ -67,6 +75,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @CacheEvict(value = "tasks", allEntries = true)
     public void completeTask(Long taskId) {
         Task task = getTaskById(taskId);
         task.setIsCompleted(true);
@@ -74,9 +83,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
     private void validateTask(Task task) {
-        if (task.getUserId() == null) {
-            throw new IllegalArgumentException("Task userId cannot be null");
-        }
         if (task.getTitle() == null || task.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Task title cannot be empty");
         }
@@ -86,8 +92,8 @@ public class TaskServiceImpl implements TaskService {
         if (task.getTargetDate() == null) {
             throw new IllegalArgumentException("Task target date cannot be null");
         }
-        if (task.getTargetDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Task target date cannot be in the past");
+        if (task.getUserId() == null) {
+            throw new IllegalArgumentException("Task userId cannot be null");
         }
     }
 } 

@@ -1,11 +1,13 @@
 package spbstu.TasksApplication.service;
 
 import spbstu.TasksApplication.model.User;
+import java.util.List;
 
 public interface UserService {
-    User registerUser(User user);
-    User login(String username, String password);
+    List<User> getAllUsers();
     User getUserById(Long userId);
-    User updateUser(Long userId, User updatedUser);
+    User getUserByUsername(String username);
     User createUser(User user);
+    User updateUser(Long userId, User updatedUser);
+    void deleteUser(Long userId);
 }

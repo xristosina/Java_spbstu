@@ -1,5 +1,7 @@
 package spbstu.TasksApplication.service.impl;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Notification;
@@ -21,36 +23,37 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Cacheable(value = "notifications", key = "#userId.toString()", unless = "#result.isEmpty()")
     public List<Notification> getAllNotifications(Long userId) {
         return notificationRepository.findByUserIdOrderByDateDesc(userId);
     }
 
     @Override
-    public List<Notification> getPendingNotifications(Long userId) {
+    @Cacheable(value = "notifications", key = "'unread_' + #userId.toString()", unless = "#result.isEmpty()")
+    public List<Notification> getUnreadNotifications(Long userId) {
         return notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(userId);
     }
 
     @Override
+    @Cacheable(value = "notifications", key = "#notificationId.toString()", unless = "#result == null")
     public Notification getNotificationById(Long notificationId) {
         return notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + notificationId));
     }
 
     @Override
+    @CacheEvict(value = "notifications", allEntries = true)
     public Notification createNotification(Notification notification) {
-        if (notification.getMessage() == null || notification.getMessage().trim().isEmpty()) {
-            throw new IllegalArgumentException("Notification message cannot be empty");
-        }
-        if (notification.getUserId() == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
+        validateNotification(notification);
         User user = userRepository.findById(notification.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + notification.getUserId()));
         notification.setDate(LocalDateTime.now());
+        notification.setIsRead(false);
         return notificationRepository.save(notification);
     }
 
     @Override
+    @CacheEvict(value = "notifications", allEntries = true)
     public Notification markAsRead(Long notificationId) {
         Notification notification = getNotificationById(notificationId);
         notification.setIsRead(true);
@@ -58,22 +61,20 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void markAllAsRead(Long userId) {
-        List<Notification> unreadNotifications = notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(userId);
-        unreadNotifications.forEach(notification -> {
-            notification.setIsRead(true);
-            notificationRepository.save(notification);
-        });
-    }
-
-    @Override
+    @CacheEvict(value = "notifications", allEntries = true)
     public void deleteNotification(Long notificationId) {
-        Notification notification = getNotificationById(notificationId);
-        notificationRepository.delete(notification);
+        if (!notificationRepository.existsById(notificationId)) {
+            throw new ResourceNotFoundException("Notification not found with id: " + notificationId);
+        }
+        notificationRepository.deleteById(notificationId);
     }
 
-    @Override
-    public List<Notification> getUnreadNotifications(Long userId) {
-        return notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(userId);
+    private void validateNotification(Notification notification) {
+        if (notification.getUserId() == null) {
+            throw new IllegalArgumentException("Notification userId cannot be null");
+        }
+        if (notification.getMessage() == null || notification.getMessage().trim().isEmpty()) {
+            throw new IllegalArgumentException("Notification message cannot be empty");
+        }
     }
 } 
