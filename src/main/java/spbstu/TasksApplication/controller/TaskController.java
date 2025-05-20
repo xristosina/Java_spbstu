@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.model.TaskStatus;
 import spbstu.TasksApplication.service.TaskService;
 import spbstu.TasksApplication.exception.DuplicateResourceException;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
@@ -37,6 +38,15 @@ public class TaskController {
     public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{taskId}/status")
+    public ResponseEntity<Task> updateTaskStatus(
+            @PathVariable Long taskId,
+            @RequestParam TaskStatus status) {
+        Task task = taskService.getTaskById(taskId);
+        task.setStatus(status);
+        return ResponseEntity.ok(taskService.updateTask(taskId, task));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
