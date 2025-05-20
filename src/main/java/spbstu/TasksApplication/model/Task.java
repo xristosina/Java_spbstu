@@ -48,4 +48,10 @@ public class Task implements Serializable {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isDeleted = false;
+
+    @NonNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private TaskStatus status = TaskStatus.TODO;
 } 

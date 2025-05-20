@@ -1,6 +1,7 @@
 package spbstu.TasksApplication.service;
 
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.model.TaskStatus;
 import java.util.List;
 
 public interface TaskService {
@@ -11,4 +12,5 @@ public interface TaskService {
     Task updateTask(Long taskId, Task updatedTask);
     void deleteTask(Long taskId);
     void completeTask(Long taskId);
+    List<Task> findByStatus(TaskStatus status);
 }

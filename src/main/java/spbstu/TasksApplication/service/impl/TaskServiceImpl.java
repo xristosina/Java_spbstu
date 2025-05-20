@@ -8,6 +8,7 @@ import spbstu.TasksApplication.config.RabbitMQConfig;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.messaging.TaskCreatedMessage;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.model.TaskStatus;
 import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.repository.TaskRepository;
 import spbstu.TasksApplication.repository.UserRepository;
@@ -78,6 +79,7 @@ public class TaskServiceImpl implements TaskService {
         existingTask.setDescription(updatedTask.getDescription());
         existingTask.setTargetDate(updatedTask.getTargetDate());
         existingTask.setIsCompleted(updatedTask.getIsCompleted());
+        existingTask.setStatus(updatedTask.getStatus());
         
         return taskRepository.save(existingTask);
     }
@@ -96,6 +98,12 @@ public class TaskServiceImpl implements TaskService {
         Task task = getTaskById(taskId);
         task.setIsCompleted(true);
         taskRepository.save(task);
+    }
+
+    @Override
+    @Cacheable(value = "tasks", key = "'status_' + #status.name()", unless = "#result.isEmpty()")
+    public List<Task> findByStatus(TaskStatus status) {
+        return taskRepository.findByStatusAndIsDeletedFalse(status);
     }
 
     private void validateTask(Task task) {
