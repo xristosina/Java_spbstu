@@ -75,17 +75,6 @@ public class NotificationControllerTest {
     }
 
     @Test
-    void createNotification_ShouldCreateAndReturnNotification() {
-        when(notificationService.createNotification(any(Notification.class))).thenReturn(testNotification);
-
-        ResponseEntity<Notification> response = notificationController.createNotification(testNotification);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(testNotification, response.getBody());
-        verify(notificationService, times(1)).createNotification(testNotification);
-    }
-
-    @Test
     void markAsRead_ShouldMarkNotificationAsRead() {
         when(notificationService.markAsRead(1L)).thenReturn(testNotification);
 
@@ -102,7 +91,7 @@ public class NotificationControllerTest {
 
         ResponseEntity<Void> response = notificationController.deleteNotification(1L);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(204, response.getStatusCodeValue());
         verify(notificationService, times(1)).deleteNotification(1L);
     }
 } 

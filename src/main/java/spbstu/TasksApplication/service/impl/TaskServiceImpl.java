@@ -1,9 +1,12 @@
 package spbstu.TasksApplication.service.impl;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import spbstu.TasksApplication.config.RabbitMQConfig;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
+import spbstu.TasksApplication.messaging.TaskCreatedMessage;
 import spbstu.TasksApplication.model.Task;
 import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.repository.TaskRepository;
@@ -16,10 +19,12 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final RabbitTemplate rabbitTemplate;
 
-    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository, RabbitTemplate rabbitTemplate) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Override
@@ -49,7 +54,18 @@ public class TaskServiceImpl implements TaskService {
         User user = userRepository.findById(task.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + task.getUserId()));
         task.setCreationDate(LocalDateTime.now());
-        return taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+
+        // Publish task created message
+        TaskCreatedMessage message = TaskCreatedMessage.builder()
+                .taskId(savedTask.getTaskId())
+                .title(savedTask.getTitle())
+                .userId(savedTask.getUserId())
+                .build();
+        rabbitTemplate.convertAndSend(RabbitMQConfig.TASK_CREATED_EXCHANGE, 
+                RabbitMQConfig.TASK_CREATED_ROUTING_KEY, message);
+
+        return savedTask;
     }
 
     @Override

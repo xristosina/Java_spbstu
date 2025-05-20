@@ -45,6 +45,17 @@ dependencies {
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	
+	// RabbitMQ
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	testImplementation 'org.springframework.amqp:spring-rabbit-test'
+	
+	// Jakarta Annotations
+	implementation 'jakarta.annotation:jakarta.annotation-api'
+
+	// Logging
+	implementation 'org.springframework.boot:spring-boot-starter-logging'
+	testImplementation 'org.springframework.boot:spring-boot-starter-logging'
 }
 
 tasks.named('test') {

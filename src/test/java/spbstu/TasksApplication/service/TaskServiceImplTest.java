@@ -6,12 +6,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
 import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.repository.TaskRepository;
 import spbstu.TasksApplication.repository.UserRepository;
 import spbstu.TasksApplication.service.impl.TaskServiceImpl;
+import spbstu.TasksApplication.config.RabbitMQConfig;
+import spbstu.TasksApplication.messaging.TaskCreatedMessage;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -20,6 +23,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +34,9 @@ class TaskServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private RabbitTemplate rabbitTemplate;
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -69,6 +76,11 @@ class TaskServiceImplTest {
         assertEquals(testTask.getTitle(), createdTask.getTitle());
         assertEquals(testTask.getDescription(), createdTask.getDescription());
         verify(taskRepository).save(any(Task.class));
+        verify(rabbitTemplate).convertAndSend(
+            eq(RabbitMQConfig.TASK_CREATED_EXCHANGE),
+            eq(RabbitMQConfig.TASK_CREATED_ROUTING_KEY),
+            any(TaskCreatedMessage.class)
+        );
     }
 
     @Test
