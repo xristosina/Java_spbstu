@@ -30,11 +30,6 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotificationById(notificationId));
     }
 
-    @PostMapping
-    public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
-        return ResponseEntity.ok(notificationService.createNotification(notification));
-    }
-
     @PutMapping("/{notificationId}/read")
     public ResponseEntity<Notification> markAsRead(@PathVariable Long notificationId) {
         return ResponseEntity.ok(notificationService.markAsRead(notificationId));
@@ -43,6 +38,6 @@ public class NotificationController {
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long notificationId) {
         notificationService.deleteNotification(notificationId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 } 

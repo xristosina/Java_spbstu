@@ -42,13 +42,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public Notification createNotificationFromMessage(String message, Long userId) {
+        Notification notification = Notification.builder()
+                .message(message)
+                .userId(userId)
+                .isRead(false)
+                .build();
+        return createNotification(notification);
+    }
+
+    // Package-private method for message listener to use
     @CacheEvict(value = "notifications", allEntries = true)
-    public Notification createNotification(Notification notification) {
+    Notification createNotification(Notification notification) {
         validateNotification(notification);
         User user = userRepository.findById(notification.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + notification.getUserId()));
         notification.setDate(LocalDateTime.now());
-        notification.setIsRead(false);
         return notificationRepository.save(notification);
     }
 
@@ -63,18 +72,16 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @CacheEvict(value = "notifications", allEntries = true)
     public void deleteNotification(Long notificationId) {
-        if (!notificationRepository.existsById(notificationId)) {
-            throw new ResourceNotFoundException("Notification not found with id: " + notificationId);
-        }
-        notificationRepository.deleteById(notificationId);
+        Notification notification = getNotificationById(notificationId);
+        notificationRepository.delete(notification);
     }
 
     private void validateNotification(Notification notification) {
-        if (notification.getUserId() == null) {
-            throw new IllegalArgumentException("Notification userId cannot be null");
-        }
         if (notification.getMessage() == null || notification.getMessage().trim().isEmpty()) {
             throw new IllegalArgumentException("Notification message cannot be empty");
+        }
+        if (notification.getUserId() == null) {
+            throw new IllegalArgumentException("Notification userId cannot be null");
         }
     }
 } 
