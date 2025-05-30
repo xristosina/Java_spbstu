@@ -68,7 +68,7 @@ public class InMemoryNotificationServiceImpl implements NotificationService {
 
     @Override
     public void deleteNotification(Long notificationId) {
-        Notification notification = getNotificationById(notificationId);
+        getNotificationById(notificationId);
         notifications.remove(notificationId);
     }
 
