@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Notification;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,7 +44,7 @@ class InMemoryNotificationServiceImplTest {
 
     @Test
     void getAllNotifications_ShouldReturnAllNotificationsForUser() {
-        Notification notification1 = notificationService.createNotification(testNotification);
+        notificationService.createNotification(testNotification);
         Notification notification2 = Notification.builder()
                 .text("Another notification")
                 .taskId(2L)
@@ -101,7 +100,7 @@ class InMemoryNotificationServiceImplTest {
 
     @Test
     void markAllAsRead_ShouldMarkAllUserNotificationsAsRead() {
-        Notification notification1 = notificationService.createNotification(testNotification);
+        notificationService.createNotification(testNotification);
         Notification notification2 = Notification.builder()
                 .text("Another notification")
                 .taskId(2L)

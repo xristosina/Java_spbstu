@@ -25,7 +25,7 @@ public class Task {
     private String description;
     
     @NonNull
-    @Column(name = "creation_date", nullable = false)
+    @Column(name = "created_at", nullable = false)
     @Builder.Default
     private LocalDateTime creationDate = LocalDateTime.now();
     

@@ -56,7 +56,7 @@ class JpaNotificationRepositoryTest {
 
     @Test
     void findByUserIdOrderByDateDesc_ShouldReturnNotifications() {
-        Notification notification1 = repository.save(testNotification);
+        repository.save(testNotification);
         Notification notification2 = Notification.builder()
                 .userId(1L)
                 .taskId(2L)
