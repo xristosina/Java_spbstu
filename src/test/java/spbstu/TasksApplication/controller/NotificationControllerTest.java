@@ -1,84 +1,72 @@
 package spbstu.TasksApplication.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import spbstu.TasksApplication.model.Notification;
 import spbstu.TasksApplication.service.NotificationService;
+import spbstu.TasksApplication.exception.ResourceNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(NotificationController.class)
 class NotificationControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
     private NotificationService notificationService;
 
-    @InjectMocks
-    private NotificationController notificationController;
-
-    private Notification notification1;
-    private Notification notification2;
+    private Notification testNotification;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        
-        notification1 = Notification.builder()
+        testNotification = Notification.builder()
                 .notificationId(1L)
-                .text("Test notification 1")
-                .date(LocalDateTime.now())
-                .taskId(1L)
                 .userId(1L)
+                .text("Test notification")
+                .taskId(1L)
+                .date(LocalDateTime.now())
                 .isRead(false)
                 .build();
-
-        notification2 = Notification.builder()
-                .notificationId(2L)
-                .text("Test notification 2")
-                .date(LocalDateTime.now())
-                .taskId(2L)
-                .userId(1L)
-                .isRead(true)
-                .build();
     }
 
     @Test
-    void getAllNotifications_ShouldReturnAllNotifications() {
-        // Arrange
-        List<Notification> expectedNotifications = Arrays.asList(notification1, notification2);
-        when(notificationService.getAllNotifications(1L)).thenReturn(expectedNotifications);
+    void getAllNotifications_ShouldReturnNotifications() throws Exception {
+        List<Notification> notifications = Arrays.asList(testNotification);
+        when(notificationService.getAllNotifications(1L)).thenReturn(notifications);
 
-        // Act
-        ResponseEntity<List<Notification>> response = notificationController.getAllNotifications(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(expectedNotifications, response.getBody());
-        verify(notificationService, times(1)).getAllNotifications(1L);
+        mockMvc.perform(get("/api/notifications/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].notificationId").value(1))
+                .andExpect(jsonPath("$[0].text").value("Test notification"));
     }
 
     @Test
-    void getPendingNotifications_ShouldReturnOnlyUnreadNotifications() {
-        // Arrange
-        List<Notification> expectedNotifications = List.of(notification1);
-        when(notificationService.getPendingNotifications(1L)).thenReturn(expectedNotifications);
+    void getPendingNotifications_ShouldReturnPendingNotifications() throws Exception {
+        List<Notification> notifications = Arrays.asList(testNotification);
+        when(notificationService.getPendingNotifications(1L)).thenReturn(notifications);
 
-        // Act
-        ResponseEntity<List<Notification>> response = notificationController.getPendingNotifications(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(expectedNotifications, response.getBody());
-        verify(notificationService, times(1)).getPendingNotifications(1L);
+        mockMvc.perform(get("/api/notifications/1/pending"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].notificationId").value(1))
+                .andExpect(jsonPath("$[0].text").value("Test notification"));
     }
 } 

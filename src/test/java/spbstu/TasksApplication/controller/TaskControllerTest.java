@@ -1,11 +1,13 @@
 package spbstu.TasksApplication.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import spbstu.TasksApplication.model.Task;
 import spbstu.TasksApplication.service.TaskService;
 
@@ -13,102 +15,84 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(TaskController.class)
 class TaskControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
     private TaskService taskService;
 
-    @InjectMocks
-    private TaskController taskController;
-
-    private Task task1;
-    private Task task2;
+    private Task testTask;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        
-        task1 = Task.builder()
+        testTask = Task.builder()
                 .taskId(1L)
-                .title("Test task 1")
-                .description("Description 1")
-                .creationDate(LocalDateTime.now())
+                .title("Test Task")
+                .description("Test Description")
                 .targetDate(LocalDateTime.now().plusDays(1))
                 .userId(1L)
-                .isCompleted(false)
-                .isDeleted(false)
-                .build();
-
-        task2 = Task.builder()
-                .taskId(2L)
-                .title("Test task 2")
-                .description("Description 2")
-                .creationDate(LocalDateTime.now())
-                .targetDate(LocalDateTime.now().plusDays(2))
-                .userId(1L)
-                .isCompleted(true)
-                .isDeleted(false)
                 .build();
     }
 
     @Test
-    void getAllTasks_ShouldReturnAllTasks() {
-        // Arrange
-        List<Task> expectedTasks = Arrays.asList(task1, task2);
-        when(taskService.getAllTasks(1L)).thenReturn(expectedTasks);
+    void getAllTasks_ShouldReturnTasks() throws Exception {
+        List<Task> tasks = Arrays.asList(testTask);
+        when(taskService.getAllTasks(1L)).thenReturn(tasks);
 
-        // Act
-        ResponseEntity<List<Task>> response = taskController.getAllTasks(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(expectedTasks, response.getBody());
-        verify(taskService, times(1)).getAllTasks(1L);
+        mockMvc.perform(get("/api/tasks/user/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].taskId").value(1))
+                .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
     @Test
-    void getPendingTasks_ShouldReturnOnlyPendingTasks() {
-        // Arrange
-        List<Task> expectedTasks = List.of(task1);
-        when(taskService.getPendingTasks(1L)).thenReturn(expectedTasks);
+    void getPendingTasks_ShouldReturnPendingTasks() throws Exception {
+        List<Task> tasks = Arrays.asList(testTask);
+        when(taskService.getPendingTasks(1L)).thenReturn(tasks);
 
-        // Act
-        ResponseEntity<List<Task>> response = taskController.getPendingTasks(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(expectedTasks, response.getBody());
-        verify(taskService, times(1)).getPendingTasks(1L);
+        mockMvc.perform(get("/api/tasks/user/1/pending"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].taskId").value(1))
+                .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
     @Test
-    void createTask_ShouldCreateNewTask() {
-        // Arrange
-        when(taskService.createTask(any(Task.class))).thenReturn(task1);
+    void createTask_ShouldCreateNewTask() throws Exception {
+        when(taskService.createTask(any(Task.class))).thenReturn(testTask);
 
-        // Act
-        ResponseEntity<Task> response = taskController.createTask(task1);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(task1, response.getBody());
-        verify(taskService, times(1)).createTask(task1);
+        mockMvc.perform(post("/api/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testTask)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.taskId").value(1))
+                .andExpect(jsonPath("$.title").value("Test Task"));
     }
 
     @Test
-    void deleteTask_ShouldDeleteTask() {
-        // Act
-        ResponseEntity<Void> response = taskController.deleteTask(1L);
+    void deleteTask_ShouldDeleteTask() throws Exception {
+        mockMvc.perform(delete("/api/tasks/1"))
+                .andExpect(status().isNoContent());
+    }
 
-        // Assert
-        assertNotNull(response);
-        assertEquals(204, response.getStatusCodeValue());
-        verify(taskService, times(1)).deleteTask(1L);
+    @Test
+    void createTask_ShouldReturnBadRequest_WhenTitleIsEmpty() throws Exception {
+        testTask.setTitle("");
+        when(taskService.createTask(any(Task.class))).thenThrow(new IllegalArgumentException("Task title cannot be empty"));
+
+        mockMvc.perform(post("/api/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testTask)))
+                .andExpect(status().isBadRequest());
     }
 } 

@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class InMemoryUserServiceImpl implements UserService {
     private final Map<Long, User> users = new HashMap<>();
     private final AtomicLong userIdCounter = new AtomicLong(1);
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
