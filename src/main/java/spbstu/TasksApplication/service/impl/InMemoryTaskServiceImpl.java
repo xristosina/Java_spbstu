@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 
 @Service
-public class TaskServiceImpl implements TaskService {
+public class InMemoryTaskServiceImpl implements TaskService {
     private final Map<Long, Task> tasks = new HashMap<>();
     private final AtomicLong taskIdCounter = new AtomicLong(1);
 

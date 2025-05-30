@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 
 @Service
-public class NotificationServiceImpl implements NotificationService {
+public class InMemoryNotificationServiceImpl implements NotificationService {
     private final Map<Long, Notification> notifications = new HashMap<>();
     private final AtomicLong notificationIdCounter = new AtomicLong(1);
 
