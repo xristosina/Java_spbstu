@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.repository.TaskRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("h2")
 class JpaTaskRepositoryTest {
     @Autowired
-    private JpaTaskRepository repository;
+    private TaskRepository repository;
     private Task testTask;
 
     @BeforeEach
@@ -40,17 +42,17 @@ class JpaTaskRepositoryTest {
     }
 
     @Test
-    void findById_ShouldReturnTask_WhenExists() {
+    void findByTaskId_ShouldReturnTask_WhenExists() {
         Task savedTask = repository.save(testTask);
-        Optional<Task> foundTask = repository.findById(savedTask.getTaskId());
+        Optional<Task> foundTask = repository.findByTaskId(savedTask.getTaskId());
         
         assertTrue(foundTask.isPresent());
         assertEquals(savedTask.getTaskId(), foundTask.get().getTaskId());
     }
 
     @Test
-    void findById_ShouldReturnEmpty_WhenNotExists() {
-        Optional<Task> foundTask = repository.findById(999L);
+    void findByTaskId_ShouldReturnEmpty_WhenNotExists() {
+        Optional<Task> foundTask = repository.findByTaskId(999L);
         assertTrue(foundTask.isEmpty());
     }
 
