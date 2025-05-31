@@ -9,4 +9,5 @@ public interface TaskRepository {
     List<Task> findByUserIdAndIsCompletedFalseAndIsDeletedFalse(Long userId);
     Optional<Task> findByIdAndDeletedFalse(Long id);
     Task save(Task task);
+    Optional<Task> findById(Long id);
 }

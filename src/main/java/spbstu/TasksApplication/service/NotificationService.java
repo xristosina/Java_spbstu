@@ -38,4 +38,26 @@ public class NotificationService {
             throw new IllegalArgumentException("User ID cannot be null");
         }
     }
+
+    public Notification createNotification(Notification testNotification) {
+        return notificationRepository.save(testNotification);
+    }
+
+    public Notification markAsRead(Long notificationId) {
+        Notification notification = getNotificationById(notificationId);
+        notification.setIsRead(true);
+        return notificationRepository.save(notification);
+    }
+
+    public void markAllAsRead(Long userId) {
+        List<Notification> list = notificationRepository.findByUserIdAndIsReadFalseOrderByDateDesc(userId);
+        list.forEach(notification -> {
+            notification.setIsRead(true);
+            notificationRepository.save(notification);
+        });
+    }
+
+    public void deleteNotification(Long notificationId) {
+        notificationRepository.deleteById(notificationId);
+    }
 }
