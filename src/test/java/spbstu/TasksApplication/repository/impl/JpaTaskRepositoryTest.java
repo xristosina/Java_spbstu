@@ -2,20 +2,27 @@ package spbstu.TasksApplication.repository.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.repository.TaskRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskRepositoryTest {
-    private InMemoryTaskRepository repository;
+@DataJpaTest
+@ActiveProfiles("h2")
+class JpaTaskRepositoryTest {
+    @Autowired
+    private TaskRepository repository;
     private Task testTask;
 
     @BeforeEach
     void setUp() {
-        repository = new InMemoryTaskRepository();
         testTask = Task.builder()
                 .title("Test Task")
                 .description("Test Description")

@@ -36,7 +36,7 @@ public class InMemoryTaskRepository implements TaskRepository {
     }
 
     @Override
-    public Optional<Task> findByIdAndDeletedFalse(Long id) {
+    public Optional<Task> findByTaskIdAndIsDeletedFalse(Long id) {
         return Optional.ofNullable(tasks.get(id));
     }
 
@@ -51,7 +51,7 @@ public class InMemoryTaskRepository implements TaskRepository {
     }
 
     @Override
-    public Optional<Task> findById(Long id) {
+    public Optional<Task> findByTaskId(Long id) {
         return Optional.ofNullable(tasks.get(id));
     }
 }
