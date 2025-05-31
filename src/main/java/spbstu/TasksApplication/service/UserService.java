@@ -1,6 +1,8 @@
 package spbstu.TasksApplication.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.User;
@@ -15,6 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    @CacheEvict(value = "users", allEntries = true)
     public User registerUser(User user) {
         validateUser(user);
         checkUsernameExists(user.getUsername());
@@ -26,12 +29,15 @@ public class UserService {
 //        return user;
     }
 
+    @Cacheable(value = "users", key = "#username")
     public User login(String username, String password) {
+        System.out.println(123);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid username or password"));
         if (!user.getPassword().equals(password)) {
             throw new ResourceNotFoundException("Invalid username or password");
         }
+
         return user;
 //        return users.values().stream()
 //                .filter(u -> u.getUsername().equals(username) && u.getPassword().equals(password))
@@ -39,6 +45,7 @@ public class UserService {
 //                .orElseThrow(() -> new ResourceNotFoundException("Invalid username or password"));
     }
 
+    @Cacheable(value = "users", key = "#userId.toString()", unless = "#result == null")
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));

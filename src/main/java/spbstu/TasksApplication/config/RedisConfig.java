@@ -26,12 +26,12 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
-                .withCacheConfiguration("tasks", 
+                .withCacheConfiguration("tasks",
                     RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
-                .withCacheConfiguration("users", 
+                .withCacheConfiguration("users",
                     RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(15)))
-                .withCacheConfiguration("notifications", 
+                .withCacheConfiguration("notifications",
                     RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
                 .build();
     }
-} 
+}

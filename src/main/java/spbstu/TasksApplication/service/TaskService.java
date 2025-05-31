@@ -1,6 +1,8 @@
 package spbstu.TasksApplication.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
@@ -15,25 +17,30 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
 
+    @Cacheable(value = "tasks", key = "#userId.toString()", unless = "#result.isEmpty()")
     public List<Task> getAllTasks(Long userId) {
         return taskRepository.findByUserIdAndIsDeletedFalse(userId);
     }
 
+    @Cacheable(value = "tasks", key = "'pending_' + #userId.toString()", unless = "#result.isEmpty()")
     public List<Task> getPendingTasks(Long userId) {
         return taskRepository.findByUserIdAndIsCompletedFalseAndIsDeletedFalse(userId);
     }
 
+    @Cacheable(value = "tasks", key = "#taskId.toString()", unless = "#result == null")
     public Task getTaskById(Long taskId) {
         return taskRepository.findByTaskIdAndIsDeletedFalse(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
     }
 
+    @CacheEvict(value = "tasks", allEntries = true)
     public Task createTask(Task task) {
         validateTask(task);
         task.setCreationDate(LocalDateTime.now());
         return taskRepository.save(task);
     }
 
+    @CacheEvict(value = "tasks", allEntries = true)
     public void deleteTask(Long taskId) {
         Task task = taskRepository.findByTaskIdAndIsDeletedFalse(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
@@ -41,6 +48,7 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    @CacheEvict(value = "tasks", allEntries = true)
     public void completeTask(Long taskId) {
         Task task = taskRepository.findByTaskId(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
@@ -66,6 +74,7 @@ public class TaskService {
         }
     }
 
+    @CacheEvict(value = "tasks", allEntries = true)
     public Task updateTask(Long taskId, Task updatedTask) {
         updatedTask.setTaskId(taskId);
         return taskRepository.save(updatedTask);
