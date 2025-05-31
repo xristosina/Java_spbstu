@@ -54,4 +54,11 @@ public class InMemoryTaskRepository implements TaskRepository {
     public Optional<Task> findByTaskId(Long id) {
         return Optional.ofNullable(tasks.get(id));
     }
+
+    @Override
+    public List<Task> findByIsCompleted(boolean b) {
+        return tasks.values().stream()
+                .filter(u -> !u.getIsCompleted())
+                .toList();
+    }
 }

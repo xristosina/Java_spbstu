@@ -10,4 +10,5 @@ public interface TaskRepository {
     Optional<Task> findByTaskIdAndIsDeletedFalse(Long id);
     Task save(Task task);
     Optional<Task> findByTaskId(Long id);
+    List<Task> findByIsCompleted(boolean b);
 }
