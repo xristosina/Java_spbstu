@@ -57,20 +57,20 @@ public class UserServiceImpl implements UserService {
     public User updateUser(Long userId, User updatedUser) {
         User existingUser = getUserById(userId);
         validateUser(updatedUser);
-        
+
         if (!existingUser.getUsername().equals(updatedUser.getUsername()) &&
-            userRepository.existsByUsername(updatedUser.getUsername())) {
+                userRepository.existsByUsername(updatedUser.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
         if (!existingUser.getEmail().equals(updatedUser.getEmail()) &&
-            userRepository.existsByEmail(updatedUser.getEmail())) {
+                userRepository.existsByEmail(updatedUser.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
-        
+
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPassword(updatedUser.getPassword());
-        
+
         return userRepository.save(existingUser);
     }
 

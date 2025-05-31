@@ -2,7 +2,6 @@ package spbstu.TasksApplication.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
@@ -10,22 +9,20 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
-    
+
     @NonNull
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
-    
+
     @NonNull
     @Column(nullable = false)
     private String password;
-    
+
     @NonNull
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 } 

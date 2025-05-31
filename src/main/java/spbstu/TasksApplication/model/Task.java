@@ -3,7 +3,6 @@ package spbstu.TasksApplication.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.io.Serializable;
 
 @Entity
 @Table(name = "tasks")
@@ -11,41 +10,40 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Task implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "task_id")
     private Long taskId;
-    
+
     @NonNull
     @Column(nullable = false)
     private String title;
-    
+
     @NonNull
     @Column(nullable = false)
     private String description;
-    
+
     @NonNull
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     @Builder.Default
     private LocalDateTime creationDate = LocalDateTime.now();
-    
+
     @NonNull
-    @Column(nullable = false)
+    @Column(name = "target_date", nullable = false)
     private LocalDateTime targetDate;
-    
+
     @NonNull
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
-    
+
     @NonNull
-    @Column(nullable = false)
+    @Column(name = "is_completed", nullable = false)
     @Builder.Default
     private Boolean isCompleted = false;
-    
+
     @NonNull
-    @Column(nullable = false)
+    @Column(name = "is_deleted", nullable = false)
     @Builder.Default
     private Boolean isDeleted = false;
 } 

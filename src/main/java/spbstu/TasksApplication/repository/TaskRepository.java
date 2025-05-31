@@ -1,12 +1,13 @@
 package spbstu.TasksApplication.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import spbstu.TasksApplication.model.Task;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository {
     List<Task> findByUserIdAndIsDeletedFalse(Long userId);
     List<Task> findByUserIdAndIsCompletedFalseAndIsDeletedFalse(Long userId);
-} 
+    Optional<Task> findByTaskIdAndIsDeletedFalse(Long id);
+    Task save(Task task);
+    Optional<Task> findByTaskId(Long id);
+}

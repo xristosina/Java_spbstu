@@ -57,12 +57,12 @@ public class TaskServiceImpl implements TaskService {
     public Task updateTask(Long taskId, Task updatedTask) {
         Task existingTask = getTaskById(taskId);
         validateTask(updatedTask);
-        
+
         existingTask.setTitle(updatedTask.getTitle());
         existingTask.setDescription(updatedTask.getDescription());
         existingTask.setTargetDate(updatedTask.getTargetDate());
         existingTask.setIsCompleted(updatedTask.getIsCompleted());
-        
+
         return taskRepository.save(existingTask);
     }
 

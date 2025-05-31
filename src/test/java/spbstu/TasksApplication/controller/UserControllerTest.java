@@ -1,105 +1,86 @@
 package spbstu.TasksApplication.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import spbstu.TasksApplication.model.User;
 import spbstu.TasksApplication.service.UserService;
-import java.util.Arrays;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
-public class UserControllerTest {
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
     private UserService userService;
 
-    @InjectMocks
-    private UserController userController;
-
     private User testUser;
-    private List<User> expectedUsers;
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
-        testUser.setUserId(1L);
-        testUser.setUsername("testuser");
-        testUser.setEmail("test@example.com");
-        testUser.setPassword("password123");
-
-        expectedUsers = Arrays.asList(testUser);
+        testUser = User.builder()
+                .userId(1L)
+                .username("testuser")
+                .password("password123")
+                .email("test@example.com")
+                .build();
     }
 
     @Test
-    void getAllUsers_ShouldReturnAllUsers() {
-        when(userService.getAllUsers()).thenReturn(expectedUsers);
+    void registerUser_ShouldRegisterNewUser() throws Exception {
+        when(userService.registerUser(any(User.class))).thenReturn(testUser);
 
-        ResponseEntity<List<User>> response = userController.getAllUsers();
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(expectedUsers, response.getBody());
-        verify(userService, times(1)).getAllUsers();
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.username").value("testuser"));
     }
 
     @Test
-    void getUserById_ShouldReturnUser() {
-        when(userService.getUserById(1L)).thenReturn(testUser);
+    void registerUser_ShouldReturnBadRequest_WhenUsernameIsEmpty() throws Exception {
+        testUser.setUsername("");
+        when(userService.registerUser(any(User.class))).thenThrow(new IllegalArgumentException("Username is empty"));
 
-        ResponseEntity<User> response = userController.getUserById(1L);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(testUser, response.getBody());
-        verify(userService, times(1)).getUserById(1L);
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void getUserByUsername_ShouldReturnUser() {
-        when(userService.getUserByUsername("testuser")).thenReturn(testUser);
+    void login_ShouldReturnUser_WhenCredentialsAreValid() throws Exception {
+        when(userService.login("testuser", "password123")).thenReturn(testUser);
 
-        ResponseEntity<User> response = userController.getUserByUsername("testuser");
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(testUser, response.getBody());
-        verify(userService, times(1)).getUserByUsername("testuser");
+        mockMvc.perform(get("/api/users/login")
+                        .param("username", "testuser")
+                        .param("password", "password123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.username").value("testuser"));
     }
 
     @Test
-    void createUser_ShouldCreateAndReturnUser() {
-        when(userService.createUser(any(User.class))).thenReturn(testUser);
+    void login_ShouldReturnNotFound_WhenCredentialsAreInvalid() throws Exception {
+        when(userService.login("testuser", "wrongpassword")).thenReturn(null);
 
-        ResponseEntity<User> response = userController.createUser(testUser);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(testUser, response.getBody());
-        verify(userService, times(1)).createUser(testUser);
-    }
-
-    @Test
-    void updateUser_ShouldUpdateAndReturnUser() {
-        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(testUser);
-
-        ResponseEntity<User> response = userController.updateUser(1L, testUser);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(testUser, response.getBody());
-        verify(userService, times(1)).updateUser(1L, testUser);
-    }
-
-    @Test
-    void deleteUser_ShouldDeleteUser() {
-        doNothing().when(userService).deleteUser(1L);
-
-        ResponseEntity<Void> response = userController.deleteUser(1L);
-
-        assertEquals(200, response.getStatusCodeValue());
-        verify(userService, times(1)).deleteUser(1L);
+        mockMvc.perform(get("/api/users/login")
+                        .param("username", "testuser")
+                        .param("password", "wrongpassword"))
+                .andExpect(status().isNotFound());
     }
 } 

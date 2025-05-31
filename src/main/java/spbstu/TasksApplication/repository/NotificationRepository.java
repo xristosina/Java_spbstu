@@ -1,12 +1,14 @@
 package spbstu.TasksApplication.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import spbstu.TasksApplication.model.Notification;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface NotificationRepository extends JpaRepository<Notification, Long> {
+public interface NotificationRepository {
+    Notification save(Notification notification);
+    Optional<Notification> findById(Long notificationId);
     List<Notification> findByUserIdOrderByDateDesc(Long userId);
     List<Notification> findByUserIdAndIsReadFalseOrderByDateDesc(Long userId);
-} 
+    void delete(Notification notification);
+    void deleteById(Long notificationId);
+}
