@@ -9,7 +9,7 @@ import spbstu.TasksApplication.repository.TaskRepository;
 import java.util.List;
 
 @Repository
-@Profile("h2")
+@Profile({"h2", "postgres"})
 public interface JpaTaskRepository extends JpaRepository<Task, Long>, TaskRepository {
     List<Task> findByUserIdAndIsDeletedFalse(Long userId);
     List<Task> findByUserIdAndIsCompletedFalseAndIsDeletedFalse(Long userId);
