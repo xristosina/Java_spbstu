@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import spbstu.TasksApplication.model.User;
+import spbstu.TasksApplication.repository.UserRepository;
+
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("h2")
 class JpaUserRepositoryTest {
     @Autowired
-    private JpaUserRepository repository;
+    private UserRepository repository;
     private User testUser;
 
     @BeforeEach

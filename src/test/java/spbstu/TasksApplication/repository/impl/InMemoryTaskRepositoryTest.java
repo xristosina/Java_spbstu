@@ -35,17 +35,17 @@ class InMemoryTaskRepositoryTest {
     }
 
     @Test
-    void findById_ShouldReturnTask_WhenExists() {
+    void findByTaskId_ShouldReturnTask_WhenExists() {
         Task savedTask = repository.save(testTask);
-        Optional<Task> foundTask = repository.findById(savedTask.getTaskId());
+        Optional<Task> foundTask = repository.findByTaskId(savedTask.getTaskId());
         
         assertTrue(foundTask.isPresent());
         assertEquals(savedTask.getTaskId(), foundTask.get().getTaskId());
     }
 
     @Test
-    void findById_ShouldReturnEmpty_WhenNotExists() {
-        Optional<Task> foundTask = repository.findById(999L);
+    void findByTaskId_ShouldReturnEmpty_WhenNotExists() {
+        Optional<Task> foundTask = repository.findByTaskId(999L);
         assertTrue(foundTask.isEmpty());
     }
 

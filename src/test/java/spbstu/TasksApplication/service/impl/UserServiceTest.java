@@ -4,16 +4,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.User;
+import spbstu.TasksApplication.repository.impl.InMemoryUserRepository;
+import spbstu.TasksApplication.service.UserService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryUserServiceImplTest {
-    private InMemoryUserServiceImpl userService;
+class UserServiceTest {
+    private UserService userService;
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        userService = new InMemoryUserServiceImpl();
+        userService = new UserService(new InMemoryUserRepository());
         testUser = User.builder()
                 .username("testuser")
                 .password("password123")

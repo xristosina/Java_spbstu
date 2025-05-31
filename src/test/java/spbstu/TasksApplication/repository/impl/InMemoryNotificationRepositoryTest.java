@@ -28,7 +28,7 @@ class InMemoryNotificationRepositoryTest {
     @Test
     void save_ShouldCreateNewNotification() {
         Notification savedNotification = repository.save(testNotification);
-        
+
         assertNotNull(savedNotification.getNotificationId());
         assertEquals(testNotification.getText(), savedNotification.getText());
         assertEquals(testNotification.getUserId(), savedNotification.getUserId());
@@ -38,7 +38,7 @@ class InMemoryNotificationRepositoryTest {
     void findById_ShouldReturnNotification_WhenExists() {
         Notification savedNotification = repository.save(testNotification);
         Optional<Notification> foundNotification = repository.findById(savedNotification.getNotificationId());
-        
+
         assertTrue(foundNotification.isPresent());
         assertEquals(savedNotification.getNotificationId(), foundNotification.get().getNotificationId());
     }
@@ -80,7 +80,7 @@ class InMemoryNotificationRepositoryTest {
         repository.save(readNotification);
 
         List<Notification> notifications = repository.findByUserIdAndIsReadFalseOrderByDateDesc(1L);
-        
+
         assertEquals(1, notifications.size());
         assertEquals(unreadNotification.getNotificationId(), notifications.get(0).getNotificationId());
     }
@@ -89,7 +89,7 @@ class InMemoryNotificationRepositoryTest {
     void delete_ShouldDeleteNotification() {
         Notification savedNotification = repository.save(testNotification);
         repository.delete(savedNotification);
-        
+
         Optional<Notification> foundNotification = repository.findById(savedNotification.getNotificationId());
         assertTrue(foundNotification.isEmpty());
     }

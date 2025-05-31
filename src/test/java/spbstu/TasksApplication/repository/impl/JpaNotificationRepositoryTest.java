@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import spbstu.TasksApplication.model.Notification;
+import spbstu.TasksApplication.repository.NotificationRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("h2")
 class JpaNotificationRepositoryTest {
     @Autowired
-    private JpaNotificationRepository repository;
+    private NotificationRepository repository;
     private Notification testNotification;
 
     @BeforeEach
