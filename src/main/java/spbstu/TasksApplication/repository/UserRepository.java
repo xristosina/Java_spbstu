@@ -9,4 +9,5 @@ public interface UserRepository {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     Optional<User> findById(Long id);
-} 
+    Optional<User> findByEmail(String mail);
+}
