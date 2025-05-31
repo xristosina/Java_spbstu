@@ -14,15 +14,6 @@ public class InMemoryNotificationRepository implements NotificationRepository {
     private final AtomicLong notificationIdCounter = new AtomicLong(1);
 
     @Override
-    public Notification save(Notification notification) {
-        if (notification.getNotificationId() == null) {
-            notification.setNotificationId(notificationIdCounter.getAndIncrement());
-        }
-        notifications.put(notification.getNotificationId(), notification);
-        return notification;
-    }
-
-    @Override
     public Optional<Notification> findById(Long notificationId) {
         return Optional.ofNullable(notifications.get(notificationId));
     }
@@ -50,9 +41,4 @@ public class InMemoryNotificationRepository implements NotificationRepository {
         result.sort(Comparator.comparing(Notification::getDate).reversed());
         return result;
     }
-
-    @Override
-    public void delete(Notification notification) {
-        notifications.remove(notification.getNotificationId());
-    }
-} 
+}
