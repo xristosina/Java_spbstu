@@ -4,18 +4,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
 import spbstu.TasksApplication.model.Task;
+import spbstu.TasksApplication.repository.impl.InMemoryTaskRepository;
+import spbstu.TasksApplication.service.TaskService;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskServiceImplTest {
-    private InMemoryTaskServiceImpl taskService;
+class TaskServiceTest {
+    private TaskService taskService;
     private Task testTask;
 
     @BeforeEach
     void setUp() {
-        taskService = new InMemoryTaskServiceImpl();
+        taskService = new TaskService(new InMemoryTaskRepository());
         testTask = Task.builder()
                 .title("Test Task")
                 .description("Test Description")

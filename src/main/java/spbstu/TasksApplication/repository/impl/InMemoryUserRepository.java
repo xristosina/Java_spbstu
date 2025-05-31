@@ -19,25 +19,13 @@ public class InMemoryUserRepository implements UserRepository {
             user.setUserId(userIdCounter.getAndIncrement());
         }
         users.put(user.getUserId(), user);
-        return user;
-    }
-
-    @Override
-    public Optional<User> findById(Long userId) {
-        return Optional.ofNullable(users.get(userId));
+        return users.get(user.getUserId());
     }
 
     @Override
     public Optional<User> findByUsername(String username) {
         return users.values().stream()
                 .filter(u -> u.getUsername().equals(username))
-                .findFirst();
-    }
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return users.values().stream()
-                .filter(u -> u.getEmail().equals(email))
                 .findFirst();
     }
 
@@ -51,5 +39,10 @@ public class InMemoryUserRepository implements UserRepository {
     public boolean existsByEmail(String email) {
         return users.values().stream()
                 .anyMatch(u -> u.getEmail().equals(email));
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(users.get(id));
     }
 } 
