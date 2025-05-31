@@ -30,6 +30,12 @@ dependencies {
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	
+	// PostgreSQL
+	runtimeOnly 'org.postgresql:postgresql'
+	
+	// Flyway
+	implementation 'org.flywaydb:flyway-core:9.22.3'
 }
 
 tasks.named('test') {

@@ -40,7 +40,7 @@ class NotificationServiceTest {
 
     @Test
     void getAllNotifications_ShouldReturnAllNotificationsForUser() {
-        Notification notification1 = notificationService.createNotification(testNotification);
+        notificationService.createNotification(testNotification);
         Notification notification2 = Notification.builder()
                 .text("Another notification")
                 .taskId(2L)
@@ -96,7 +96,7 @@ class NotificationServiceTest {
 
     @Test
     void markAllAsRead_ShouldMarkAllUserNotificationsAsRead() {
-        Notification notification1 = notificationService.createNotification(testNotification);
+        notificationService.createNotification(testNotification);
         Notification notification2 = Notification.builder()
                 .text("Another notification")
                 .taskId(2L)

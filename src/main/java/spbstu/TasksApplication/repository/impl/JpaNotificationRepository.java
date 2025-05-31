@@ -9,7 +9,7 @@ import spbstu.TasksApplication.repository.NotificationRepository;
 import java.util.List;
 
 @Repository
-@Profile("h2")
+@Profile({"h2", "postgres"})
 public interface JpaNotificationRepository extends JpaRepository<Notification, Long>, NotificationRepository {
     List<Notification> findByUserIdOrderByDateDesc(Long userId);
     List<Notification> findByUserIdAndIsReadFalseOrderByDateDesc(Long userId);

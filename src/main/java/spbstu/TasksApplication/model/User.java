@@ -2,7 +2,6 @@ package spbstu.TasksApplication.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
 
 @Entity
 @Table(name = "users")

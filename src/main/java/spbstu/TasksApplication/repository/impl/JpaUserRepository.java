@@ -9,7 +9,7 @@ import spbstu.TasksApplication.repository.UserRepository;
 import java.util.Optional;
 
 @Repository
-@Profile("h2")
+@Profile({"h2", "postgres"})
 public interface JpaUserRepository extends JpaRepository<User, Long>, UserRepository {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
