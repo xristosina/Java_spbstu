@@ -1,6 +1,7 @@
 package spbstu.TasksApplication.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -51,7 +52,7 @@ public class NotificationService {
 
     @CacheEvict(value = "notifications", allEntries = true)
     public Notification markAsRead(Long notificationId) {
-        Notification notification = getNotificationById(notificationId);
+        Notification notification = ((NotificationService)AopContext.currentProxy()).getNotificationById(notificationId);
         notification.setIsRead(true);
         return notificationRepository.save(notification);
     }
@@ -68,5 +69,14 @@ public class NotificationService {
     @CacheEvict(value = "notifications", allEntries = true)
     public void deleteNotification(Long notificationId) {
         notificationRepository.deleteById(notificationId);
+    }
+
+    public Notification createNotificationFromMessage(String message, Long userId) {
+        Notification notification = Notification.builder()
+                .text(message)
+                .userId(userId)
+                .isRead(false)
+                .build();
+        return createNotification(notification);
     }
 }

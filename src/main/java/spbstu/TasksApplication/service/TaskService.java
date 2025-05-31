@@ -1,10 +1,13 @@
 package spbstu.TasksApplication.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import spbstu.TasksApplication.config.RabbitMQConfig;
 import spbstu.TasksApplication.exception.ResourceNotFoundException;
+import spbstu.TasksApplication.messaging.TaskCreatedMessage;
 import spbstu.TasksApplication.model.Task;
 import spbstu.TasksApplication.repository.TaskRepository;
 
@@ -15,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskService {
 
+    private final RabbitTemplate rabbitTemplate;
     private final TaskRepository taskRepository;
 
     @Cacheable(value = "tasks", key = "#userId.toString()", unless = "#result.isEmpty()")
@@ -37,7 +41,18 @@ public class TaskService {
     public Task createTask(Task task) {
         validateTask(task);
         task.setCreationDate(LocalDateTime.now());
-        return taskRepository.save(task);
+
+        Task savedTask = taskRepository.save(task);
+
+        TaskCreatedMessage message = TaskCreatedMessage.builder()
+                .taskId(savedTask.getTaskId())
+                .title(savedTask.getTitle())
+                .userId(savedTask.getUserId())
+                .build();
+        rabbitTemplate.convertAndSend(RabbitMQConfig.TASK_CREATED_EXCHANGE,
+                RabbitMQConfig.TASK_CREATED_ROUTING_KEY, message);
+
+        return savedTask;
     }
 
     @CacheEvict(value = "tasks", allEntries = true)
