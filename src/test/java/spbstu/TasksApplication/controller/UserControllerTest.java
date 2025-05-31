@@ -44,8 +44,8 @@ class UserControllerTest {
         when(userService.registerUser(any(User.class))).thenReturn(testUser);
 
         mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUser)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.username").value("testuser"));
@@ -57,8 +57,8 @@ class UserControllerTest {
         when(userService.registerUser(any(User.class))).thenThrow(new IllegalArgumentException("Username is empty"));
 
         mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUser)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -67,8 +67,8 @@ class UserControllerTest {
         when(userService.login("testuser", "password123")).thenReturn(testUser);
 
         mockMvc.perform(get("/api/users/login")
-                .param("username", "testuser")
-                .param("password", "password123"))
+                        .param("username", "testuser")
+                        .param("password", "password123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.username").value("testuser"));
@@ -79,8 +79,8 @@ class UserControllerTest {
         when(userService.login("testuser", "wrongpassword")).thenReturn(null);
 
         mockMvc.perform(get("/api/users/login")
-                .param("username", "testuser")
-                .param("password", "wrongpassword"))
+                        .param("username", "testuser")
+                        .param("password", "wrongpassword"))
                 .andExpect(status().isNotFound());
     }
 } 
