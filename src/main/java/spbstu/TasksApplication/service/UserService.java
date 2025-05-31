@@ -39,6 +39,11 @@ public class UserService {
 //                .orElseThrow(() -> new ResourceNotFoundException("Invalid username or password"));
     }
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
+    }
+
     private void validateUser(User user) {
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
@@ -77,4 +82,6 @@ public class UserService {
 //            throw new IllegalArgumentException("Email already exists");
 //        }
     }
+
+
 }

@@ -41,6 +41,13 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    public void completeTask(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
+        task.setIsCompleted(true);
+        taskRepository.save(task);
+    }
+
     private void validateTask(Task task) {
         if (task.getUserId() == null) {
             throw new IllegalArgumentException("Task userId cannot be null");
@@ -57,5 +64,10 @@ public class TaskService {
         if (task.getTargetDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Task target date cannot be in the past");
         }
+    }
+
+    public Task updateTask(Long taskId, Task updatedTask) {
+        updatedTask.setTaskId(taskId);
+        return taskRepository.save(updatedTask);
     }
 }

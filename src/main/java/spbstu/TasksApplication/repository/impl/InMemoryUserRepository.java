@@ -19,7 +19,7 @@ public class InMemoryUserRepository implements UserRepository {
             user.setUserId(userIdCounter.getAndIncrement());
         }
         users.put(user.getUserId(), user);
-        return user;
+        return users.get(user.getUserId());
     }
 
     @Override
@@ -39,5 +39,10 @@ public class InMemoryUserRepository implements UserRepository {
     public boolean existsByEmail(String email) {
         return users.values().stream()
                 .anyMatch(u -> u.getEmail().equals(email));
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(users.get(id));
     }
 } 

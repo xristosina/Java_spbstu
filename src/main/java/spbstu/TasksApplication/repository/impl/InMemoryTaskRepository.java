@@ -40,12 +40,18 @@ public class InMemoryTaskRepository implements TaskRepository {
         return Optional.ofNullable(tasks.get(id));
     }
 
+
     @Override
     public Task save(Task task) {
         if (task.getTaskId() == null) {
             task.setTaskId(taskIdCounter.getAndIncrement());
         }
         tasks.put(task.getTaskId(), task);
-        return task;
+        return tasks.get(task.getTaskId());
+    }
+
+    @Override
+    public Optional<Task> findById(Long id) {
+        return Optional.ofNullable(tasks.get(id));
     }
 }
