@@ -7,6 +7,6 @@ import java.util.Optional;
 public interface TaskRepository {
     List<Task> findByUserIdAndIsDeletedFalse(Long userId);
     List<Task> findByUserIdAndIsCompletedFalseAndIsDeletedFalse(Long userId);
+    Optional<Task> findByIdAndDeletedFalse(Long id);
     Task save(Task task);
-    Optional<Task> findById(Long taskId);
-} 
+}
