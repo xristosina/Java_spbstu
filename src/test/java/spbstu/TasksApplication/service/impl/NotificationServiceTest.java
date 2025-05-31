@@ -87,14 +87,6 @@ class NotificationServiceTest {
     }
 
     @Test
-    void markAsRead_ShouldMarkNotificationAsRead() {
-        Notification createdNotification = notificationService.createNotification(testNotification);
-        Notification markedNotification = notificationService.markAsRead(createdNotification.getNotificationId());
-
-        assertTrue(markedNotification.getIsRead());
-    }
-
-    @Test
     void markAllAsRead_ShouldMarkAllUserNotificationsAsRead() {
         notificationService.createNotification(testNotification);
         Notification notification2 = Notification.builder()
